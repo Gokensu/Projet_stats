@@ -1,18 +1,31 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
+import pandas as pd
 
 # ============================================================
 # PARTIE I : ÉTUDE D'UN PHÉNOMÈNE RÉEL (Sommeil)
 # ============================================================
-# 1.2 Collecte des données (Échantillon n=18 extrait de tes images)
-DATA = [3.5, 4.5, 4.5, 5, 5, 5.5, 5.5, 6, 6, 6, 6.5, 6.5, 7, 7, 7.5, 7.5, 8, 8]
+
+# 1.2 Collecte des données — chargement depuis le CSV
+df = pd.read_csv("../csv/sondage.csv")
+df.columns = ["horodateur", "td", "heures", "raisons"]
+
+# Conversion des intervalles en point milieu
+MILIEUX = {
+    "Moins de 4h"   : 3.0,
+    "Entre 4h et 6h": 5.0,
+    "Entre 6h et 8h": 7.0,
+    "Plus de 8h"    : 9.0,
+}
+DATA = df["heures"].map(MILIEUX).values
+# Résultat : [7, 5, 5, 5, 7, 7, 7, 5, 5, 7, 7, 5, 5, 5, 7, 7, 5, 3]
 
 # 1.3 Analyse statistique avec Python
 n = len(DATA)
 moy = np.mean(DATA)
 var = np.var(DATA, ddof=1)
-std = np.std(DATA, ddof=1)
+std = np.sqrt(var)
 med = np.median(DATA)
 mini, maxi = np.min(DATA), np.max(DATA)
 
@@ -91,9 +104,7 @@ calculs_intervalles("Khi-deux (k=5)", stats.chi2(df=5), a=2, b=8)
 # 2.2 Comparaisons graphiques
 plt.figure(figsize=(15, 10))
 
-# 1. Normale vs Student (Étude de l'effet des degrés de liberté)
-# Plus v est petit, plus les "queues" sont épaisses. Quand v -> inf, Student -> Normale.
-
+# 1. Normale vs Student
 plt.subplot(2, 2, 1)
 x_std = np.linspace(-4, 4, 500)
 plt.plot(x_std, stats.norm.pdf(x_std), 'k--', lw=2, label="Normale (0,1)")
@@ -102,9 +113,7 @@ for df in [1, 2, 30]:
 plt.title("2.2 : Loi Normale vs Student")
 plt.legend()
 
-# 2. Plusieurs lois du Khi-deux (Étude de l'effet de k)
-# La loi est asymétrique. Plus k augmente, plus elle se déplace vers la droite et devient symétrique.
-
+# 2. Plusieurs lois du Khi-deux
 plt.subplot(2, 2, 2)
 x_chi = np.linspace(0, 20, 500)
 for k in [2, 5, 10]:
@@ -112,7 +121,7 @@ for k in [2, 5, 10]:
 plt.title("2.2 : Lois du Khi-deux")
 plt.legend()
 
-# 3. Plusieurs lois de Fisher (Étude de d1, d2)
+# 3. Plusieurs lois de Fisher
 plt.subplot(2, 2, 3)
 x_f = np.linspace(0, 5, 500)
 for d1, d2 in [(2,10), (5,20), (10,30)]:
@@ -120,8 +129,7 @@ for d1, d2 in [(2,10), (5,20), (10,30)]:
 plt.title("2.2 : Lois de Fisher")
 plt.legend()
 
-# 4. Fonction de répartition F(x) et Interprétation
-# F(x) donne la probabilité cumulée. F(médiane) = 0.5.
+# 4. Fonctions de répartition
 plt.subplot(2, 2, 4)
 plt.plot(x_std, stats.norm.cdf(x_std), 'k--', label="CDF Normale")
 plt.plot(x_std, stats.t.cdf(x_std, df=2), label="CDF Student (v=2)")
