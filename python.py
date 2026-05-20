@@ -14,7 +14,7 @@ import pandas as pd
 # __Données__ intervalles
 # ============================================================
 
-# Chargement du fichier CSV dans un "DataFrame" Pandas (une structure de données en tableau). La variable 'df' stocke ce tableau.
+# Chargement du fichierCSV dans un "DataFrame" Pandas (une structure de données en tableau). La variable 'df' stocke ce tableau.
 df = pd.read_csv("../csv/sondage.csv")
 
 # Renommage forcé des colonnes du DataFrame 'df' pour faciliter l'accès aux données. Nous avons 4 colonnes correspondant aux réponses du formulaire.
