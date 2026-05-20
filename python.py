@@ -1,35 +1,83 @@
+# Importation de la bibliothèque NumPy, standard pour les calculs mathématiques et la gestion des tableaux numériques. Assignée à l'alias 'np'.
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy import stats
-"""
-#__Données__ intervalles
 
-heures = [3]*1 +[5]*8 + [7]*9  # 8 personnes entre 4h et 6h, 9 personnes entre 6h et 8h
+# Importation du module pyplot de Matplotlib, utilisé pour générer des graphiques et des visualisations. Assigné à l'alias 'plt'.
+import matplotlib.pyplot as plt
+
+# Importation du module stats de SciPy, qui contient des fonctions statistiques avancées (utilisé ici pour l'estimation de densité).
+from scipy import stats
+
+# Importation de Pandas, une bibliothèque conçue pour la manipulation et l'analyse de données structurées (comme les fichiers CSV). Assignée à l'alias 'pd'.
+import pandas as pd
 
 # ============================================================
-#Taille de l'échantillon
-n=len(heures)
+# __Données__ intervalles
+# ============================================================
 
-#Moyenne intervalles
-moyenne=np.mean(heures)
+# Chargement du fichier CSV dans un "DataFrame" Pandas (une structure de données en tableau). La variable 'df' stocke ce tableau.
+df = pd.read_csv("../csv/sondage.csv")
 
-#variance intervalles
-variance=np.var(heures)
+# Renommage forcé des colonnes du DataFrame 'df' pour faciliter l'accès aux données. Nous avons 4 colonnes correspondant aux réponses du formulaire.
+df.columns = ["horodateur", "td", "heures", "raisons"]
 
-#Ecart-type
-ecart_type=np.sqrt(variance)
+# Création d'un dictionnaire nommé 'sondage'. Il sert de table de conversion.
+# Les clés (à gauche) sont les réponses textuelles attendues, les valeurs (à droite) sont les points milieux numériques associés.
+sondage = {
+    "Entre 6h et 8h": 7,
+    "Entre 4h et 6h": 5,
+    "Moins de 4h": 3,
+}
 
-#médiane
-mediane=np.median(heures)
+# Initialisation d'une liste vide nommée 'heures_converties'. Elle servira de réceptacle pour stocker les valeurs numériques après conversion.
+heures_converties = []
 
-#minimum
-minimum=np.min(heures)
+# Début d'une boucle itérative. La variable 'reponse' va prendre tour à tour la valeur de chaque cellule de la colonne "heures" du tableau 'df'.
+for reponse in df["heures"]:
+    
+    # Structure conditionnelle (if) pour vérifier si la chaîne de caractères contenue dans 'reponse' existe en tant que clé dans notre dictionnaire 'sondage'.
+    if reponse in sondage:
+        
+        # Si la condition est vraie, on extrait la valeur numérique correspondante du dictionnaire et on la stocke temporairement dans la variable 'val'.
+        val = sondage[reponse]
+        
+        # On ajoute cette valeur numérique ('val') à la fin de notre liste 'heures_converties'.
+        heures_converties.append(val)
 
-#maximum
-maximum=np.max(heures)
+# Assignation de la liste finale à la variable principale 'heures'. Cette variable devient notre jeu de données de référence pour tout le reste du script.
+heures = heures_converties
 
-#affichage des résultats
+# Utilisation de la fonction len() pour compter le nombre total d'éléments dans la liste 'heures'. Le résultat est stocké dans la variable 'n', qui représente la taille de l'échantillon.
+n = len(heures)
+
+# ============================================================
+# ANALYSE STATISTIQUE
+# ============================================================
+
+# Calcul de la moyenne arithmétique de la liste 'heures' via NumPy. Le résultat est assigné à la variable 'moyenne'.
+moyenne = np.mean(heures)
+
+# Calcul de la variance. Le paramètre 'ddof=1' (Delta Degrees of Freedom) indique qu'il s'agit d'une variance empirique non biaisée (divisée par n-1 au lieu de n). Assignée à 'variance'.
+variance = np.var(heures, ddof=1)
+
+# Calcul de l'écart-type, qui est mathématiquement la racine carrée (sqrt pour square root) de la variance. Assigné à 'ecart_type'.
+ecart_type = np.sqrt(variance)
+
+# Identification de la médiane (la valeur qui sépare l'échantillon en deux moitiés égales) via NumPy. Assignée à 'mediane'.
+mediane = np.median(heures)
+
+# Identification de la valeur la plus basse de l'échantillon. Assignée à 'minimum'.
+minimum = np.min(heures)
+
+# Identification de la valeur la plus haute de l'échantillon. Assignée à 'maximum'.
+maximum = np.max(heures)
+
+# ============================================================
+# AFFICHAGE DES RÉSULTATS TEXTUELS
+# ============================================================
+
+# Impression des résultats dans la console. Le 'f' devant les guillemets indique une chaîne formatée (f-string), permettant d'insérer des variables directement entre accolades {}.
 print(f"Taille de l'échantillon : {n}")
+# Le format ':.2f' indique que la variable numérique doit être affichée avec une précision de 2 décimales (chiffres après la virgule).
 print(f"Moyenne : {moyenne:.2f} heures")
 print(f"Variance : {variance:.2f} heures^2")
 print(f"Ecart-type : {ecart_type:.2f} heures")
@@ -37,132 +85,38 @@ print(f"Médiane : {mediane:.2f} heures")
 print(f"Minimum : {minimum:.2f} heures")
 print(f"Maximum : {maximum:.2f} heures")
 
-#representation graphe sur le meme graphique (3graphes sur une image)
-fig, axes = plt.subplots(1, 3, figsize=(14, 5))
-fig.suptitle("Analyse du sommeil en semaine — Classe (n=18)", fontsize=13)
+# ============================================================
+# REPRÉSENTATIONS GRAPHIQUES
+# ============================================================
 
-axes[0].hist(heures, bins=[4, 6, 8], edgecolor='black')
-axes[0].set_title("Distribution des heures de sommeil")
-axes[0].set_xlabel("Heures de sommeil")
-axes[0].set_ylabel("Nombre de personnes")
-axes[0].set_xticks([4, 5, 6, 7, 8])
+# 1. Histogramme
+# Création d'un histogramme basé sur la liste 'heures'. Le paramètre 'bins' définit explicitement les limites des classes (colonnes) pour isoler les valeurs 3, 5 et 7. 'edgecolor' trace le contour des barres.
+plt.hist(heures, bins=[2, 4, 6, 8], edgecolor='black')
+plt.title("Distribution des heures de sommeil") # Définit le titre du graphique
+plt.xlabel("Heures de sommeil") # Définit le label de l'axe des abscisses (X)
+plt.ylabel("Nombre de personnes") # Définit le label de l'axe des ordonnées (Y)
+plt.xticks([2, 3, 4, 5, 6, 7, 8]) # Force l'affichage de valeurs spécifiques sur l'axe des X pour une lecture claire.
+plt.show() # Commande d'exécution qui génère et affiche la fenêtre graphique.
+
+# 2. Boîte à moustaches
+# Création d'un diagramme en boîte à moustaches (boxplot). Le paramètre 'vert=False' indique que le graphique doit être dessiné horizontalement.
+plt.boxplot(heures, vert=False)
+plt.title("Boîte à moustaches des heures de sommeil")
+plt.xlabel("Heures de sommeil")
+plt.yticks([1], ['']) # Masque l'étiquette par défaut de l'axe Y (qui afficherait un '1' inutile) en la remplaçant par une chaîne vide.
 plt.show()
 
-#boite à moustaches
-axes[1].boxplot(heures, vert=False)
-axes[1].set_title("Boîte à moustaches des heures de sommeil")
-axes[1].set_xlabel("Heures de sommeil")
-axes[1].set_yticks([1], [''])
-axes[1].show()
+# 3. Courbe de densité
+# Création d'un tableau 'x' contenant 100 valeurs espacées uniformément entre 2 et 10. Cela sert d'axe d'abscisses continu pour tracer une courbe fluide.
+x = np.linspace(2, 10, 100)
 
-#courbe de densité
-
-x = np.linspace(4, 8, 100)
+# Initialisation d'un modèle d'estimation de densité par noyau (KDE - Kernel Density Estimation) fourni par SciPy, calibré sur les données de 'heures'. La fonction résultante est assignée à 'kde'.
 kde = stats.gaussian_kde(heures)
 
-axes[2].plot(x, kde(x), label='Densité de probabilité')
-axes[2].set_title("Courbe de densité des heures de sommeil")
-axes[2].set_xlabel("Heures de sommeil")
-axes[2].set_ylabel("Densité")
-axes[2].legend()
-plt.show()
-
-"""
-
-# ============================================================
-# Données réelles — 3 classes
-# Moins de 4h → milieu = 3  (n=1)
-# Entre 4h-6h → milieu = 5  (n=11)
-# Entre 6h-8h → milieu = 7  (n=6)
-
-heures = [3]*1 + [5]*11 + [7]*6
-
-# ============================================================
-# 1. Taille de l'échantillon
-n = len(heures)
-
-# 2. Fréquences
-milieux    = np.array([3, 5, 7])
-effectifs  = np.array([1, 11, 6])
-frequences = effectifs / n          # fᵢ = nᵢ / n
-
-# 3. Moyenne  →  x̄ = Σ fᵢ · xᵢ
-moyenne = np.sum(frequences * milieux)
-
-# 4. Variance  →  σ² = Σ fᵢ · xᵢ² − x̄²
-variance = np.sum(frequences * milieux**2) - moyenne**2
-
-# 5. Écart-type  →  σ = √σ²
-ecart_type = np.sqrt(variance)
-
-# 6. Médiane par interpolation linéaire
-#    Fréquences cumulées : F1=1/18, F2=12/18, F3=18/18
-#    0.5 tombe dans [4h, 6h]  →  a=4, h=2, F_avant=1/18, f_med=11/18
-a       = 4
-h       = 2
-F_avant = 1 / n
-f_med   = 11 / n
-mediane = a + h * (0.5 - F_avant) / f_med
-
-# 7. Min / Max (bornes des classes extrêmes)
-minimum = 0   # borne inférieure de "Moins de 4h"
-maximum = 8   # borne supérieure de "Entre 6h-8h"
-
-# ============================================================
-# Affichage
-print(f"Taille de l'échantillon : {n}")
-print(f"Moyenne                 : {moyenne:.4f} heures")
-print(f"Variance                : {variance:.4f} heures²")
-print(f"Écart-type              : {ecart_type:.4f} heures")
-print(f"Médiane                 : {mediane:.4f} heures")
-print(f"Minimum (borne)         : {minimum} heures")
-print(f"Maximum (borne)         : {maximum} heures")
-
-# ============================================================
-# Graphiques
-labels   = ["< 4h", "4h–6h", "6h–8h"]
-freq_pct = frequences * 100   # en pourcentage
-
-fig, axes = plt.subplots(1, 3, figsize=(14, 5))
-fig.suptitle("Analyse du sommeil en semaine — Classe (n=18)", fontsize=13)
-
-# --- Graphe 1 : Histogramme des effectifs ---
-axes[0].bar(labels, effectifs, color=["#AFA9EC", "#7F77DD", "#534AB7"],
-            edgecolor="white", width=0.6)
-axes[0].set_title("Effectifs par classe")
-axes[0].set_xlabel("Heures de sommeil")
-axes[0].set_ylabel("Nombre d'étudiants")
-axes[0].axvline(x=1, color="#D85A30", linestyle="--", linewidth=1.2,
-                label=f"Médiane ≈ {mediane:.2f}h")
-axes[0].legend(fontsize=9)
-for i, v in enumerate(effectifs):
-    axes[0].text(i, v + 0.1, str(v), ha="center", fontsize=11, fontweight="bold")
-
-# --- Graphe 2 : Diagramme en barres des fréquences (%) ---
-axes[1].bar(labels, freq_pct, color=["#9FE1CB", "#1D9E75", "#085041"],
-            edgecolor="white", width=0.6)
-axes[1].set_title("Fréquences relatives (%)")
-axes[1].set_xlabel("Heures de sommeil")
-axes[1].set_ylabel("Fréquence (%)")
-for i, v in enumerate(freq_pct):
-    axes[1].text(i, v + 0.5, f"{v:.1f}%", ha="center", fontsize=10)
-
-# --- Graphe 3 : Fréquences cumulées ---
-F_cum = np.cumsum(frequences) * 100
-bornes = [4, 6, 8]   # bornes supérieures des classes
-axes[2].plot([0] + bornes, [0] + list(F_cum), marker="o",
-             color="#7F77DD", linewidth=2, markersize=7)
-axes[2].axhline(y=50, color="#D85A30", linestyle="--", linewidth=1.2,
-                label="50% → médiane")
-axes[2].axvline(x=mediane, color="#D85A30", linestyle="--", linewidth=1.2)
-axes[2].set_title("Fréquences cumulées (%)")
-axes[2].set_xlabel("Heures de sommeil")
-axes[2].set_ylabel("Fréquence cumulée (%)")
-axes[2].set_xticks([0, 4, 6, 8])
-axes[2].legend(fontsize=9)
-for x, y in zip([0]+bornes, [0]+list(F_cum)):
-    axes[2].text(x + 0.1, y + 1.5, f"{y:.1f}%", fontsize=9)
-
-plt.tight_layout()
-plt.savefig("analyse_sommeil.png", dpi=150, bbox_inches="tight")
+# Tracé d'une courbe en ligne (plot). L'axe X est le tableau 'x', l'axe Y est généré en évaluant la fonction 'kde' sur chaque point de 'x'. L'argument 'label' sert pour la légende.
+plt.plot(x, kde(x), label='Densité de probabilité')
+plt.title("Courbe de densité des heures de sommeil")
+plt.xlabel("Heures de sommeil")
+plt.ylabel("Densité")
+plt.legend() # Active l'affichage de la légende définie précédemment dans la commande plot.
 plt.show()
