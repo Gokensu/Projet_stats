@@ -8,7 +8,7 @@ import pandas as pd
 # ============================================================
 
 # 1.2 Collecte des données — chargement depuis le CSV
-df = pd.read_csv("../csv/sondage.csv")
+df = pd.read_csv("csv/sondage.csv")
 df.columns = ["horodateur", "td", "heures", "raisons"]
 
 # Conversion des intervalles en point milieu
